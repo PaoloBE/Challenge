@@ -28,20 +28,21 @@ public class CalcService {
         try {
             Integer externalNumber = this.client.callNumber().getNumber();
             if (externalNumber == 0) {
-                sendMetricError(request, "Error servicio externo");
+                sendMetricError("api/calculate", request, "Error servicio externo");
                 return 0.0;
             }
             Integer sum = request.getNum1() + request.getNum2();
             Double calcResult = sum.doubleValue() * ( externalNumber *  sum.doubleValue() / 100);
-            sendMetric(request, calcResult);
+            sendMetric("api/calculate", request, calcResult);
             return calcResult;
         } catch (Exception e) {
-            sendMetricError(request, e.getMessage());
+            sendMetricError("api/calculate", request, e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
     public List<LogMetric> allMetrics() {
+        sendMetric("api/logs/all", null, null);
         return this.repository.findAll();
     }
 
@@ -56,13 +57,13 @@ public class CalcService {
     }
 
     @Async
-    private void sendMetric(CalcRequest request, Double sum) {
+    private void sendMetric(String endpoint, CalcRequest request, Double sum) {
         LogMetric newEntry = new LogMetric(Instant.now(), "api/calculate", requestString(request), sum.toString(), null);
         repository.save(newEntry);
     }
 
     @Async
-    private void sendMetricError(CalcRequest request, String errorMsg){
+    private void sendMetricError(String endpoint, CalcRequest request, String errorMsg){
         LogMetric newEntry = new LogMetric(Instant.now(), "api/calculate", requestString(request), null, errorMsg);
         repository.save(newEntry);
     }
